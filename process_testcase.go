@@ -1,8 +1,10 @@
 package venom
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/fsamin/go-dump"
 	"github.com/sirupsen/logrus"
@@ -115,6 +117,8 @@ func (v *Venom) parseTestCase(ts *TestSuite, tc *TestCase) ([]string, []string, 
 }
 
 func (v *Venom) runTestCase(ts *TestSuite, tc *TestCase, l Logger) {
+	start := time.Now()
+
 	tcc, err := v.initTestCaseContext(ts, tc)
 	if err != nil {
 		tc.Errors = append(tc.Errors, Failure{Value: RemoveNotPrintableChar(err.Error())})
@@ -151,5 +155,7 @@ func (v *Venom) runTestCase(ts *TestSuite, tc *TestCase, l Logger) {
 			break
 		}
 	}
+	elapsed := time.Since(start)
+	tc.Time = fmt.Sprintf("%s", elapsed)
 	l.Infof("end")
 }

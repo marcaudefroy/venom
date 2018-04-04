@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/hcl"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/cheggaaa/pb.v1"
+	"github.com/vbauerster/mpb"
 	"gopkg.in/yaml.v2"
 )
 
@@ -69,7 +69,7 @@ func getFilesPath(path []string, exclude []string) (filePaths []string, err erro
 }
 
 func (v *Venom) readFiles(filesPath []string) (err error) {
-	v.outputProgressBar = make(map[string]*pb.ProgressBar)
+	v.outputProgressBar = make(map[string]*mpb.Bar)
 
 	for _, f := range filesPath {
 		log.Info("Reading ", f)
@@ -119,6 +119,9 @@ func (v *Venom) readFiles(filesPath []string) (err error) {
 			}
 		}
 
+		ts.Total = len(ts.TestCases)
+		v.testsuites = append(v.testsuites, ts)
+
 		nSteps := 0
 		for _, tc := range ts.TestCases {
 			nSteps += len(tc.TestSteps)
@@ -126,23 +129,25 @@ func (v *Venom) readFiles(filesPath []string) (err error) {
 				ts.Skipped += len(tc.Skipped)
 			}
 		}
-		ts.Total = len(ts.TestCases)
+		// prefixName := ts.Name
+		// if ts.Name == "" {
+		// 	prefixName = ts.Package
+		// }
+		// b := pb.New(nSteps).Prefix(rightPad("READING "+prefixName, " ", 77))
+		// b.ShowCounters = false
 
-		b := pb.New(nSteps).Prefix(rightPad("READING "+ts.Package, " ", 47))
-		b.ShowCounters = false
-		b.Output = v.LogOutput
-		if v.OutputDetails == DetailsLow {
-			b.ShowBar = false
-			b.ShowFinalTime = false
-			b.ShowPercent = false
-			b.ShowSpeed = false
-			b.ShowTimeLeft = false
-		}
+		// b.Output = v.LogOutput
+		// if v.OutputDetails == DetailsLow {
+		// 	b.ShowBar = false
+		// 	b.ShowFinalTime = false
+		// 	b.ShowPercent = false
+		// 	b.ShowSpeed = false
+		// 	b.ShowTimeLeft = false
+		// }
 
-		if v.OutputDetails != DetailsLow {
-			v.outputProgressBar[ts.Package] = b
-		}
-		v.testsuites = append(v.testsuites, ts)
+		// if v.OutputDetails != DetailsLow {
+		// 	v.outputProgressBar[ts.Package] = b
+		// }
 	}
 	return nil
 }

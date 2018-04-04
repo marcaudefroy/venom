@@ -5,7 +5,7 @@ import (
 	"io"
 	"os"
 
-	pb "gopkg.in/cheggaaa/pb.v1"
+	"github.com/vbauerster/mpb"
 )
 
 var (
@@ -44,7 +44,7 @@ type Venom struct {
 	Parallel        int
 
 	OutputDetails        string
-	outputProgressBar    map[string]*pb.ProgressBar
+	outputProgressBar    map[string]*mpb.Bar
 	OutputFormat         string
 	OutputDir            string
 	OutputResume         bool

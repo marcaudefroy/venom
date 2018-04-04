@@ -24,26 +24,34 @@ func (v *Venom) runTestSuite(ts *TestSuite) {
 		totalSteps += len(tc.TestSteps)
 	}
 
+	if v.OutputDetails != DetailsLow {
+		//	v.outputProgressBar[ts.Package].Start()
+	}
 	v.runTestCases(ts, l)
 
 	elapsed := time.Since(start)
 
-	var o string
+	ts.Time = fmt.Sprintf("%s", elapsed)
+	prefixName := ts.Name
+	if ts.Name == "" {
+		prefixName = ts.Package
+	}
+	var prefix string
 	if ts.Failures > 0 || ts.Errors > 0 {
 		red := color.New(color.FgRed).SprintFunc()
-		o = fmt.Sprintf("%s %s", red("FAILURE"), rightPad(ts.Package, " ", 47))
+		prefix = rightPad(fmt.Sprintf("%s %s", red("FAILURE"), prefixName), " ", 86)
 	} else {
 		green := color.New(color.FgGreen).SprintFunc()
-		o = fmt.Sprintf("%s %s", green("SUCCESS"), rightPad(ts.Package, " ", 47))
+		prefix = rightPad(fmt.Sprintf("%s %s", green("SUCCESS"), prefixName), " ", 86)
 	}
-	if v.OutputDetails == DetailsLow {
-		o += fmt.Sprintf("%s", elapsed)
-	}
+
 	if v.OutputDetails != DetailsLow {
-		v.outputProgressBar[ts.Package].Prefix(o)
-		v.outputProgressBar[ts.Package].Finish()
+
+		// v.outputProgressBar[ts.Package].Prefix(prefix)
+		// v.outputProgressBar[ts.Package].Finish()
 	} else {
-		v.PrintFunc("%s\n", o)
+		prefix += ts.Time
+		v.PrintFunc("%s\n", prefix)
 	}
 }
 

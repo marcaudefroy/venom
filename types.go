@@ -89,24 +89,25 @@ type Tests struct {
 // TestSuite is a single JUnit test suite which may contain many
 // testcases.
 type TestSuite struct {
-	XMLName    xml.Name               `xml:"testsuite" json:"-" yaml:"-"`
-	Disabled   int                    `xml:"disabled,attr,omitempty" json:"disabled" yaml:"-"`
-	Errors     int                    `xml:"errors,attr,omitempty" json:"errors" yaml:"-"`
-	Failures   int                    `xml:"failures,attr,omitempty" json:"failures" yaml:"-"`
-	Hostname   string                 `xml:"hostname,attr,omitempty" json:"hostname" yaml:"-"`
-	ID         string                 `xml:"id,attr,omitempty" json:"id" yaml:"-"`
-	Name       string                 `xml:"name,attr" json:"name" yaml:"name"`
-	Package    string                 `xml:"package,attr,omitempty" json:"package" yaml:"-"`
-	Properties []Property             `xml:"-" json:"properties" yaml:"-"`
-	Skipped    int                    `xml:"skipped,attr,omitempty" json:"skipped" yaml:"skipped,omitempty"`
-	Total      int                    `xml:"tests,attr" json:"total" yaml:"total,omitempty"`
-	TestCases  []TestCase             `xml:"testcase" hcl:"testcase" json:"tests" yaml:"testcases"`
-	Version    string                 `xml:"version,omitempty" hcl:"version" json:"version" yaml:"version,omitempty"`
-	Time       string                 `xml:"time,attr,omitempty" json:"time" yaml:"-"`
-	Timestamp  string                 `xml:"timestamp,attr,omitempty" json:"timestamp" yaml:"-"`
-	Vars       map[string]interface{} `xml:"-" json:"-" yaml:"vars"`
-	Templater  *Templater             `xml:"-" json:"-" yaml:"-"`
-	WorkDir    string                 `xml:"-" json:"-" yaml:"-"`
+	XMLName     xml.Name               `xml:"testsuite" json:"-" yaml:"-"`
+	Disabled    int                    `xml:"disabled,attr,omitempty" json:"disabled" yaml:"-"`
+	Errors      int                    `xml:"errors,attr,omitempty" json:"errors" yaml:"-"`
+	Failures    int                    `xml:"failures,attr,omitempty" json:"failures" yaml:"-"`
+	Hostname    string                 `xml:"hostname,attr,omitempty" json:"hostname" yaml:"-"`
+	ID          string                 `xml:"id,attr,omitempty" json:"id" yaml:"-"`
+	Name        string                 `xml:"name,attr" json:"name" yaml:"name"`
+	Description string                 `xml:"description,attr" json:"description" yaml:"description"`
+	Package     string                 `xml:"package,attr,omitempty" json:"package" yaml:"-"`
+	Properties  []Property             `xml:"-" json:"properties" yaml:"-"`
+	Skipped     int                    `xml:"skipped,attr,omitempty" json:"skipped" yaml:"skipped,omitempty"`
+	Total       int                    `xml:"tests,attr" json:"total" yaml:"total,omitempty"`
+	TestCases   []TestCase             `xml:"testcase" hcl:"testcase" json:"tests" yaml:"testcases"`
+	Version     string                 `xml:"version,omitempty" hcl:"version" json:"version" yaml:"version,omitempty"`
+	Time        string                 `xml:"time,attr,omitempty" json:"time" yaml:"-"`
+	Timestamp   string                 `xml:"timestamp,attr,omitempty" json:"timestamp" yaml:"-"`
+	Vars        map[string]interface{} `xml:"-" json:"-" yaml:"vars"`
+	Templater   *Templater             `xml:"-" json:"-" yaml:"-"`
+	WorkDir     string                 `xml:"-" json:"-" yaml:"-"`
 }
 
 // Property represents a key/value pair used to define properties.
@@ -118,18 +119,19 @@ type Property struct {
 
 // TestCase is a single test case with its result.
 type TestCase struct {
-	XMLName   xml.Name               `xml:"testcase" json:"-" yaml:"-"`
-	Classname string                 `xml:"classname,attr,omitempty" json:"classname" yaml:"-"`
-	Errors    []Failure              `xml:"error,omitempty" json:"errors" yaml:"errors,omitempty"`
-	Failures  []Failure              `xml:"failure,omitempty" json:"failures" yaml:"failures,omitempty"`
-	Name      string                 `xml:"name,attr" json:"name" yaml:"name"`
-	Skipped   []Skipped              `xml:"skipped,omitempty" json:"skipped" yaml:"skipped,omitempty"`
-	Status    string                 `xml:"status,attr,omitempty" json:"status" yaml:"status,omitempty"`
-	Systemout InnerResult            `xml:"system-out,omitempty" json:"systemout" yaml:"systemout,omitempty"`
-	Systemerr InnerResult            `xml:"system-err,omitempty" json:"systemerr" yaml:"systemerr,omitempty"`
-	Time      string                 `xml:"time,attr,omitempty" json:"time" yaml:"time,omitempty"`
-	TestSteps []TestStep             `xml:"-" hcl:"step" json:"steps" yaml:"steps"`
-	Context   map[string]interface{} `xml:"-" json:"-" yaml:"context,omitempty"`
+	XMLName     xml.Name               `xml:"testcase" json:"-" yaml:"-"`
+	Classname   string                 `xml:"classname,attr,omitempty" json:"classname" yaml:"-"`
+	Errors      []Failure              `xml:"error,omitempty" json:"errors" yaml:"errors,omitempty"`
+	Failures    []Failure              `xml:"failure,omitempty" json:"failures" yaml:"failures,omitempty"`
+	Name        string                 `xml:"name,attr" json:"name" yaml:"name"`
+	Description string                 `xml:"description,attr" json:"description" yaml:"description"`
+	Skipped     []Skipped              `xml:"skipped,omitempty" json:"skipped" yaml:"skipped,omitempty"`
+	Status      string                 `xml:"status,attr,omitempty" json:"status" yaml:"status,omitempty"`
+	Systemout   InnerResult            `xml:"system-out,omitempty" json:"systemout" yaml:"systemout,omitempty"`
+	Systemerr   InnerResult            `xml:"system-err,omitempty" json:"systemerr" yaml:"systemerr,omitempty"`
+	Time        string                 `xml:"time,attr,omitempty" json:"time" yaml:"time,omitempty"`
+	TestSteps   []TestStep             `xml:"-" hcl:"step" json:"steps" yaml:"steps"`
+	Context     map[string]interface{} `xml:"-" json:"-" yaml:"context,omitempty"`
 }
 
 // TestStep represents a testStep

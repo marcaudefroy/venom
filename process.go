@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
+	"github.com/fatih/color"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -126,11 +128,10 @@ func (v *Venom) Process(path []string, exclude []string) (*Tests, error) {
 	if err := v.readFiles(filesPath); err != nil {
 		return nil, err
 	}
-
-	if v.OutputDetails != DetailsLow {
-		pool := v.initBars()
-		defer endBars(v.OutputDetails, pool)
-	}
+	// var pool *pb.Pool
+	// if v.OutputDetails != DetailsLow {
+	// 	pool = v.initBars()
+	// }
 
 	chanEnd := make(chan *TestSuite, 1)
 	parallels := make(chan *TestSuite, v.Parallel) //Run testsuite in parrallel
@@ -158,6 +159,16 @@ func (v *Venom) Process(path []string, exclude []string) (*Tests, error) {
 
 	wg.Wait()
 
+	if v.OutputDetails == DetailsLow {
+		return testsResult, nil
+	}
+
+	//endBars(v.OutputDetails, pool)
+
+	//Ugly sleep to be sure that progressbar is finished to print
+	time.Sleep(200 * time.Millisecond)
+	v.showResume(*testsResult)
+
 	return testsResult, nil
 }
 
@@ -181,4 +192,32 @@ func (v *Venom) computeStats(testsResult *Tests, chanEnd <-chan *TestSuite, wg *
 func rightPad(s string, padStr string, pLen int) string {
 	o := s + strings.Repeat(padStr, pLen)
 	return o[0:pLen]
+}
+
+func (v *Venom) showResume(testsResult Tests) {
+	o := "\nResume:\n"
+	red := color.New(color.FgRed).SprintFunc()
+	green := color.New(color.FgGreen).SprintFunc()
+
+	for _, ts := range testsResult.TestSuites {
+		prefixName := ts.Name
+		if ts.Name == "" {
+			prefixName = ts.Package
+		}
+		if ts.Failures > 0 || ts.Errors > 0 {
+			o += fmt.Sprintf("%s %s - %s\n", red("FAILURE"), prefixName, ts.Time)
+		} else if v.OutputDetails == DetailsHigh {
+			o += fmt.Sprintf("%s %s - %s\n", green("SUCCESS"), prefixName, ts.Time)
+		} else {
+			continue
+		}
+		for _, tc := range ts.TestCases {
+			if len(tc.Failures) > 0 || len(tc.Errors) > 0 {
+				o += fmt.Sprintf("%s %s - %s\n", red("    FAILURE"), prefixName, tc.Time)
+			} else {
+				o += fmt.Sprintf("%s %s - %s\n", green("    SUCCESS"), prefixName, tc.Time)
+			}
+		}
+	}
+	v.PrintFunc("%s\n", o)
 }

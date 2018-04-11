@@ -3,9 +3,9 @@ package venom
 import (
 	"github.com/vbauerster/mpb"
 	"github.com/vbauerster/mpb/decor"
+	pb "gopkg.in/cheggaaa/pb.v1"
 
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/cheggaaa/pb.v1"
 )
 
 func (v *Venom) initBars() *mpb.Progress {

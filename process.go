@@ -128,10 +128,10 @@ func (v *Venom) Process(path []string, exclude []string) (*Tests, error) {
 	if err := v.readFiles(filesPath); err != nil {
 		return nil, err
 	}
-	// var pool *pb.Pool
-	// if v.OutputDetails != DetailsLow {
-	// 	pool = v.initBars()
-	// }
+	//var pool *pb.Pool
+	if v.OutputDetails != DetailsLow {
+		//		v.Pool = v.initBars()
+	}
 
 	chanEnd := make(chan *TestSuite, 1)
 	parallels := make(chan *TestSuite, v.Parallel) //Run testsuite in parrallel
@@ -206,16 +206,16 @@ func (v *Venom) showResume(testsResult Tests) {
 		}
 		if ts.Failures > 0 || ts.Errors > 0 {
 			o += fmt.Sprintf("%s %s - %s\n", red("FAILURE"), prefixName, ts.Time)
-		} else if v.OutputDetails == DetailsHigh {
+		} else if v.OutputDetails != DetailsLow {
 			o += fmt.Sprintf("%s %s - %s\n", green("SUCCESS"), prefixName, ts.Time)
 		} else {
 			continue
 		}
 		for _, tc := range ts.TestCases {
 			if len(tc.Failures) > 0 || len(tc.Errors) > 0 {
-				o += fmt.Sprintf("%s %s - %s\n", red("    FAILURE"), prefixName, tc.Time)
+				o += fmt.Sprintf("%s %s - %s\n", red("    FAILURE"), tc.Name, tc.Time)
 			} else {
-				o += fmt.Sprintf("%s %s - %s\n", green("    SUCCESS"), prefixName, tc.Time)
+				o += fmt.Sprintf("%s %s - %s\n", green("    SUCCESS"), tc.Name, tc.Time)
 			}
 		}
 	}

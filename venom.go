@@ -45,6 +45,7 @@ type Venom struct {
 
 	OutputDetails        string
 	outputProgressBar    map[string]*mpb.Bar
+	Pool                 *mpb.Progress
 	OutputFormat         string
 	OutputDir            string
 	OutputResume         bool

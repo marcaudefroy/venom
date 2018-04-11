@@ -29,6 +29,8 @@ import (
 	"github.com/ovh/venom/executors/smtp"
 	"github.com/ovh/venom/executors/ssh"
 	"github.com/ovh/venom/executors/web"
+
+	"github.com/briandowns/spinner"
 )
 
 var (
@@ -98,6 +100,8 @@ var Cmd = &cobra.Command{
 
 	},
 	Run: func(cmd *cobra.Command, args []string) {
+		s := spinner.New(spinner.CharSets[9], 100*time.Millisecond) // Build our new spinner
+		s.Start()                                                   // Start the spinner
 
 		v.LogLevel = logLevel
 		v.OutputDetails = detailsLevel
@@ -160,6 +164,7 @@ var Cmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
+		s.Stop()
 
 		elapsed := time.Since(start)
 		if err := v.OutputResult(*tests, elapsed); err != nil {

@@ -149,7 +149,8 @@ func (v *Venom) runTestCase(ts *TestSuite, tc *TestCase, l Logger) {
 		v.RunTestStep(tcc, e, ts, tc, step, l)
 
 		if v.OutputDetails != DetailsLow {
-			v.outputProgressBar[ts.Package].Increment()
+			//	fmt.Println(v.outputProgressBar[ts.Name])
+			//v.outputProgressBar[ts.Name].Increment()
 		}
 		if len(tc.Failures) > 0 || len(tc.Errors) > 0 {
 			break

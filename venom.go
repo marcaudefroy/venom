@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-
-	"github.com/vbauerster/mpb"
 )
 
 var (
@@ -30,6 +28,14 @@ func New() *Venom {
 	return v
 }
 
+type Event struct {
+	Type          string
+	TestSuiteName string
+	TestCaseName  string
+	TestStepName  string
+	State         string
+}
+
 type Venom struct {
 	LogLevel  string
 	LogOutput io.Writer
@@ -38,19 +44,19 @@ type Venom struct {
 	executors map[string]Executor
 	contexts  map[string]TestCaseContext
 
-	testsuites      []TestSuite
+	Testsuites      []TestSuite
 	variables       map[string]string
 	IgnoreVariables []string
 	Parallel        int
 
 	OutputDetails        string
-	outputProgressBar    map[string]*mpb.Bar
-	Pool                 *mpb.Progress
 	OutputFormat         string
 	OutputDir            string
 	OutputResume         bool
 	OutputResumeFailures bool
 	StopOnFailure        bool
+
+	Hook func(e Event)
 }
 
 func (v *Venom) AddVariables(variables map[string]string) {

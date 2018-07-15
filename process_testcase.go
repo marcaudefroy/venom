@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/fsamin/go-dump"
+	"github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 )
 
@@ -118,7 +119,13 @@ func (v *Venom) parseTestCase(ts *TestSuite, tc *TestCase) ([]string, []string, 
 
 func (v *Venom) runTestCase(ts *TestSuite, tc *TestCase, l Logger) {
 	start := time.Now()
-
+	u1 := uuid.Must(uuid.NewV4())
+	v.Hook(Event{
+		State:         "RUN",
+		Type:          "testCase",
+		TestSuiteName: ts.Name,
+		TestCaseName:  tc.Name + u1.String(),
+	})
 	tcc, err := v.initTestCaseContext(ts, tc)
 	if err != nil {
 		tc.Errors = append(tc.Errors, Failure{Value: RemoveNotPrintableChar(err.Error())})
@@ -132,6 +139,13 @@ func (v *Venom) runTestCase(ts *TestSuite, tc *TestCase, l Logger) {
 	l.Infof("start")
 
 	for i, stepIn := range tc.TestSteps {
+		v.Hook(Event{
+			State:         "RUN",
+			Type:          "testStep",
+			TestSuiteName: ts.Name,
+			TestCaseName:  tc.Name + u1.String(),
+			TestStepName:  fmt.Sprintf("Step %d", i+1),
+		})
 		l.Debugf("Apply template on step %d", i)
 		step, erra := ts.Templater.ApplyOnStep(stepIn)
 		if erra != nil {
@@ -147,15 +161,55 @@ func (v *Venom) runTestCase(ts *TestSuite, tc *TestCase, l Logger) {
 		}
 
 		v.RunTestStep(tcc, e, ts, tc, step, l)
-
-		if v.OutputDetails != DetailsLow {
-			//	fmt.Println(v.outputProgressBar[ts.Name])
-			//v.outputProgressBar[ts.Name].Increment()
-		}
+		//	var state string
+		//	var final string
 		if len(tc.Failures) > 0 || len(tc.Errors) > 0 {
+			// red := color.New(color.FgRed).SprintFunc()
+			// final = fmt.Sprintf(red("        FAILURE")+" step %d", i+1)
+			//		fmt.Println(final)
+			v.Hook(Event{
+				State:         "FAILURE",
+				Type:          "testStep",
+				TestSuiteName: ts.Name,
+				TestCaseName:  tc.Name + u1.String(),
+				TestStepName:  fmt.Sprintf("Step %d", i+1),
+			})
 			break
+		} else {
+			v.Hook(Event{
+				State:         "SUCCESS",
+				Type:          "testStep",
+				TestSuiteName: ts.Name,
+				TestCaseName:  tc.Name + u1.String(),
+				TestStepName:  fmt.Sprintf("Step %d", i+1),
+			})
+			// green := color.New(color.FgGreen).SprintFunc()
+			// final = fmt.Sprintf(green("        SUCCESS")+" step %d", i+1)
+			// fmt.Println(final)
 		}
+
 	}
+	//var final string
+	var state string
+	if len(tc.Failures) > 0 || len(tc.Errors) > 0 {
+		//	red := color.New(color.FgRed).SprintFunc()
+		//	final = fmt.Sprintf(red("    FAILURE ") + tc.Name)
+		state = "FAILURE"
+	} else {
+		//	green := color.New(color.FgGreen).SprintFunc()
+		//		final = fmt.Sprintf(green("    SUCCESS ") + tc.Name)
+		state = "SUCCESS"
+
+	}
+	//fmt.Println(final)
+
+	v.Hook(Event{
+		State:         state,
+		Type:          "testCase",
+		TestSuiteName: ts.Name,
+		TestCaseName:  tc.Name + u1.String(),
+	})
+
 	elapsed := time.Since(start)
 	tc.Time = fmt.Sprintf("%s", elapsed)
 	l.Infof("end")

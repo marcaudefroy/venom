@@ -7,7 +7,7 @@ const (
 	DetailsLow = "low"
 	// DetailsMedium prints progress bar and summary
 	DetailsMedium = "medium"
-	// DetailsHigh prints progress bar and details
+	// DetailsHigh prints progress and details
 	DetailsHigh = "high"
 )
 

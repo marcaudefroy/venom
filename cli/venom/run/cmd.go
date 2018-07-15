@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/briandowns/spinner"
+	"github.com/fatih/color"
 	"github.com/hashicorp/hcl"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -18,6 +20,8 @@ import (
 	"github.com/ovh/venom/context/default"
 	"github.com/ovh/venom/context/redis"
 	"github.com/ovh/venom/context/webctx"
+
+	osExec "os/exec"
 
 	"github.com/ovh/venom/executors/dbfixtures"
 	"github.com/ovh/venom/executors/exec"
@@ -29,8 +33,6 @@ import (
 	"github.com/ovh/venom/executors/smtp"
 	"github.com/ovh/venom/executors/ssh"
 	"github.com/ovh/venom/executors/web"
-
-	"github.com/briandowns/spinner"
 )
 
 var (
@@ -100,8 +102,6 @@ var Cmd = &cobra.Command{
 
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		s := spinner.New(spinner.CharSets[9], 100*time.Millisecond) // Build our new spinner
-		s.Start()                                                   // Start the spinner
 
 		v.LogLevel = logLevel
 		v.OutputDetails = detailsLevel
@@ -152,6 +152,71 @@ var Cmd = &cobra.Command{
 
 		v.AddVariables(mapvars)
 
+		res := []*result{}
+
+		suiteIndex := map[string]int{}
+		caseIndex := map[string]int{}
+		stepIndex := map[string]int{}
+
+		s := spinner.New(spinner.CharSets[9], 100*time.Millisecond) // Build our new spinner
+		s.Prefix = printRes(res, "")
+
+		//s.Start()
+		//	n := 0
+		v.Hook = func(e venom.Event) {
+			if e.Type == "testSuite" {
+				var r *result
+				if val, ok := suiteIndex[e.TestSuiteName]; ok {
+					r = res[val]
+				} else {
+					r = &result{
+						Res:  []*result{},
+						Name: e.TestSuiteName,
+					}
+					suiteIndex[e.TestSuiteName] = len(res)
+					res = append(res, r)
+				}
+				r.State = e.State
+			} else if e.Type == "testCase" {
+				i := suiteIndex[e.TestSuiteName]
+				var r *result
+				if val, ok := caseIndex[e.TestSuiteName+e.TestCaseName]; ok {
+					r = res[i].Res[val]
+				} else {
+					r = &result{
+						Res:  []*result{},
+						Name: e.TestCaseName,
+					}
+					caseIndex[e.TestSuiteName+e.TestCaseName] = len(res[i].Res)
+					res[i].Res = append(res[i].Res, r)
+				}
+				r.State = e.State
+			} else if e.Type == "testStep" {
+				i := suiteIndex[e.TestSuiteName]
+				y := caseIndex[e.TestSuiteName+e.TestCaseName]
+
+				var r *result
+				if val, ok := stepIndex[e.TestSuiteName+e.TestCaseName+e.TestStepName]; ok {
+					r = res[i].Res[y].Res[val]
+				} else {
+					r = &result{
+						Res:  []*result{},
+						Name: e.TestCaseName,
+					}
+					stepIndex[e.TestSuiteName+e.TestCaseName+e.TestStepName] = len(res[i].Res[y].Res)
+					res[i].Res[y].Res = append(res[i].Res[y].Res, r)
+				}
+				r.State = e.State
+			}
+
+			fmt.Printf("\033[0;0H")
+			o := printRes(res, "")
+			fmt.Printf(o)
+
+		}
+		c := osExec.Command("clear")
+		c.Stdout = os.Stdout
+		c.Run()
 		start := time.Now()
 
 		if !noCheckVars {
@@ -175,4 +240,26 @@ var Cmd = &cobra.Command{
 			os.Exit(2)
 		}
 	},
+}
+
+func printRes(res []*result, prefix string) string {
+	s := ""
+	red := color.New(color.FgRed).SprintFunc()
+	green := color.New(color.FgGreen).SprintFunc()
+	for _, v := range res {
+		if v.State == "SUCCESS" {
+			v.State = green(v.State)
+		} else if v.State == "FAILURE" {
+			v.State = red(v.State)
+		}
+		s += fmt.Sprintf(prefix + v.State + " " + v.Name + "\n")
+		s += printRes(v.Res, prefix+"    ")
+	}
+	return s
+}
+
+type result struct {
+	Name  string
+	State string
+	Res   []*result
 }

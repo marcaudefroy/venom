@@ -4,14 +4,24 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/briandowns/spinner"
 	"github.com/fatih/color"
 	"github.com/fsamin/go-dump"
 	log "github.com/sirupsen/logrus"
 )
 
 func (v *Venom) runTestSuite(ts *TestSuite) {
+	v.Hook(Event{
+		State:         "RUN",
+		Type:          "testSuite",
+		TestSuiteName: ts.Name,
+	})
 	l := log.WithField("v.testsuite", ts.Name)
 	start := time.Now()
+
+	s := spinner.New(spinner.CharSets[9], 100*time.Millisecond) // Build our new spinner
+	s.Prefix = " " + ts.Name
+	//s.Start()
 
 	d, err := dump.ToStringMap(ts.Vars)
 	if err != nil {
@@ -25,34 +35,35 @@ func (v *Venom) runTestSuite(ts *TestSuite) {
 	}
 
 	if v.OutputDetails != DetailsLow {
-		//	v.outputProgressBar[ts.Package].Start()
 	}
 	v.runTestCases(ts, l)
 
 	elapsed := time.Since(start)
 
 	ts.Time = fmt.Sprintf("%s", elapsed)
-	prefixName := ts.Name
-	if ts.Name == "" {
-		prefixName = ts.Package
-	}
-	var prefix string
+
+	var final string
+	var state string
 	if ts.Failures > 0 || ts.Errors > 0 {
 		red := color.New(color.FgRed).SprintFunc()
-		prefix = rightPad(fmt.Sprintf("%s %s", red("FAILURE"), prefixName), " ", 86)
+		state = "FAILURE"
+		final = fmt.Sprintf(red("FAILURE ") + ts.Name)
 	} else {
 		green := color.New(color.FgGreen).SprintFunc()
-		prefix = rightPad(fmt.Sprintf("%s %s", green("SUCCESS"), prefixName), " ", 86)
+		state = "SUCCESS"
+
+		final = fmt.Sprintf(green("SUCCESS ") + ts.Name)
 	}
 
-	if v.OutputDetails != DetailsLow {
+	s.FinalMSG = final
+	v.Hook(Event{
+		State:         state,
+		Type:          "testSuite",
+		TestSuiteName: ts.Name,
+	})
+	s.Stop()
+	//	fmt.Println(final)
 
-		// v.outputProgressBar[ts.Package].Prefix(prefix)
-		// v.outputProgressBar[ts.Package].Finish()
-	} else {
-		prefix += ts.Time
-		v.PrintFunc("%s\n", prefix)
-	}
 }
 
 func (v *Venom) runTestCases(ts *TestSuite, l Logger) {

@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/fatih/color"
 	log "github.com/sirupsen/logrus"
 )
 
 func (v *Venom) init() error {
-	v.testsuites = []TestSuite{}
+	v.Testsuites = []TestSuite{}
 	switch v.LogLevel {
 	case "debug":
 		log.SetLevel(log.DebugLevel)
@@ -52,8 +51,8 @@ func (v *Venom) Parse(path []string, exclude []string) error {
 
 	missingVars := []string{}
 	extractedVars := []string{}
-	for i := range v.testsuites {
-		ts := &v.testsuites[i]
+	for i := range v.Testsuites {
+		ts := &v.Testsuites[i]
 		log.Info("Parsing testsuite", ts.Package)
 
 		tvars, textractedVars, err := v.parseTestSuite(ts)
@@ -153,8 +152,8 @@ func (v *Venom) Process(path []string, exclude []string) (*Tests, error) {
 		}
 	}()
 
-	for i := range v.testsuites {
-		chanToRun <- &v.testsuites[i]
+	for i := range v.Testsuites {
+		chanToRun <- &v.Testsuites[i]
 	}
 
 	wg.Wait()
@@ -163,10 +162,6 @@ func (v *Venom) Process(path []string, exclude []string) (*Tests, error) {
 		return testsResult, nil
 	}
 
-	//endBars(v.OutputDetails, pool)
-
-	//Ugly sleep to be sure that progressbar is finished to print
-	time.Sleep(200 * time.Millisecond)
 	v.showResume(*testsResult)
 
 	return testsResult, nil
